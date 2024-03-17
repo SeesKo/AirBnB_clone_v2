@@ -29,19 +29,18 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """Queries on the current database session"""
         session = self.__session
         objects = {}
         if cls:
-            query = session.query(cls)
+            query = session.query(cls.__table__)
             for obj in query:
-                key = "{}.{}".format(type(obj).__name__, obj.id)
+                key = "{}.{}".format(cls.__name__, obj.id)
                 objects[key] = obj
         else:
             for c in [User, State, City, Amenity, Place, Review]:
-                query = session.query(c)
+                query = session.query(c.__table__)
                 for obj in query:
-                    key = "{}.{}".format(type(obj).__name__, obj.id)
+                    key = "{}.{}".format(c.__name__, obj.id)
                     objects[key] = obj
         return objects
 
