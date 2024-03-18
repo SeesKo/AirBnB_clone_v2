@@ -47,3 +47,14 @@ class Place(BaseModel, Base):
         latitude = 0.0
         longitude = 0.0
         amenity_ids = []
+
+        @property
+        def reviews(self):
+            """Getter attribute for reviews"""
+            from models import storage
+            all_reviews = storage.all(Review)
+            place_reviews = []
+            for review in all_reviews.values():
+                if review.place_id == self.id:
+                    place_reviews.append(review)
+            return place_reviews
