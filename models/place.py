@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from os import getenv
 
 
-lace_amenity = Table(
+place_amenity = Table(
     'place_amenity',
     Base.metadata,
     Column(
