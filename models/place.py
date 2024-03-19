@@ -67,10 +67,3 @@ class Place(BaseModel, Base):
                 if review.place_id == self.id:
                     place_reviews.append(review)
             return place_reviews
-
-        # Setter attribute amenities for FileStorage
-        @amenities.setter
-        def amenities(self, obj):
-            """Setter attribute for amenities"""
-            if isinstance(obj, Amenity):
-                self.amenity_ids.append(obj.id)
