@@ -7,7 +7,6 @@ from models.review import Review
 from sqlalchemy.orm import relationship
 from os import getenv
 
-
 class Place(BaseModel, Base):
     """ A place to stay """
     __tablename__ = 'places'
@@ -23,9 +22,15 @@ class Place(BaseModel, Base):
         price_by_night = Column(Integer, default=0, nullable=False)
         latitude = Column(Float, nullable=True)
         longitude = Column(Float, nullable=True)
+
+        place_amenity = Table('place_amenity', Base.metadata,
+                              Column('place_id', String(60), ForeignKey('places.id'), primary_key=True, nullable=False),
+                              Column('amenity_id', String(60), ForeignKey('amenities.id'), primary_key=True, nullable=False)
+                              )
+
         amenities = relationship(
             "Amenity",
-            secondary='place_amenity',
+            secondary=place_amenity,
             back_populates='place_amenities',
             viewonly=False
             )
@@ -58,3 +63,22 @@ class Place(BaseModel, Base):
                 if review.place_id == self.id:
                     place_reviews.append(review)
             return place_reviews
+
+        # Getter attribute amenities for FileStorage
+        @property
+        def amenities(self):
+            """Getter attribute for amenities"""
+            from models import storage
+            amenity_list = []
+            for amenity_id in self.amenity_ids:
+                amenity = storage.get('Amenity', amenity_id)
+                if amenity:
+                    amenity_list.append(amenity)
+            return amenity_list
+
+        # Setter attribute amenities for FileStorage
+        @amenities.setter
+        def amenities(self, obj):
+            """Setter attribute for amenities"""
+            if isinstance(obj, Amenity):
+                self.amenity_ids.append(obj.id)
