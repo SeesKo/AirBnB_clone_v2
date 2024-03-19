@@ -8,18 +8,6 @@ from sqlalchemy.orm import relationship
 from os import getenv
 
 
-place_amenity = Table(
-    'place_amenity',
-    Base.metadata,
-    Column(
-        'place_id', String(60), ForeignKey('places.id'),
-        nullable=False, primary_key=True),
-    Column(
-        'amenity_id', String(60), ForeignKey('amenities.id'),
-        nullable=False, primary_key=True)
-)
-
-
 class Place(BaseModel, Base):
     """ A place to stay """
     __tablename__ = 'places'
@@ -71,22 +59,3 @@ class Place(BaseModel, Base):
                 if review.place_id == self.id:
                     place_reviews.append(review)
             return place_reviews
-
-        # Getter attribute amenities for FileStorage
-        @property
-        def amenities(self):
-            """Getter attribute for amenities"""
-            from models import storage
-            amenity_list = []
-            for amenity_id in self.amenity_ids:
-                amenity = storage.get('Amenity', amenity_id)
-                if amenity:
-                    amenity_list.append(amenity)
-            return amenity_list
-
-        # Setter attribute amenities for FileStorage
-        @amenities.setter
-        def amenities(self, obj):
-            """Setter attribute for amenities"""
-            if isinstance(obj, Amenity):
-                self.amenity_ids.append(obj.id)
