@@ -116,7 +116,7 @@ class HBNBCommand(cmd.Cmd):
         pass
 
     def create_dict(self, args):
-        """Creates a dictionary from a list"""
+        """ Create a dictionary from a list of string arguments """
         parsed_dict = {}
         for arg_item in args:
             if "=" in arg_item:
@@ -137,7 +137,7 @@ class HBNBCommand(cmd.Cmd):
         return parsed_dict
 
     def do_create(self, args):
-        """Creates a new instance of BaseModel """
+        """ Create a new instance of a specified class """
         args = args.split()
         if len(args) == 0:
             print("** class name missing **")
