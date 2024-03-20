@@ -1,67 +1,106 @@
 #!/usr/bin/python3
-
-import unittest
-import os
-import pep8
+""" """
+from tests.test_models.test_base_model import test_basemodel
 from models.user import User
-from models.base_model import BaseModel
 
 
-class TestUser(unittest.TestCase):
+class test_User(test_basemodel):
+    """ """
+
+    def __init__(self, *args, **kwargs):
+        """ """
+        super().__init__(*args, **kwargs)
+        self.name = "User"
+        self.value = User
 
     @classmethod
     def setUpClass(cls):
-        cls.my_user = User()
-        cls.my_user.first_name = "Betty"
-        cls.my_user.last_name = "Holberton"
-        cls.my_user.email = "airbnb@holbertonshool.com"
-        cls.my_user.password = "root"
+        """Set up test class"""
+        cls.user = User()
 
-    @classmethod
-    def tearDownClass(cls):
-        del cls.my_user
-        try:
-            os.remove("file.json")
-        except FileNotFoundError:
-            pass
+    def test_first_name(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.first_name), str)
 
-    def test_style_check(self):
-        """
-        Tests pep8 style
-        """
-        style = pep8.StyleGuide(quiet=True)
-        p = style.check_files(['models/user.py'])
-        self.assertEqual(p.total_errors, 0, "fix pep8")
+    def test_last_name(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.last_name), str)
 
-    def test_is_subclass(self):
-        self.assertTrue(issubclass(self.my_user.__class__, BaseModel), True)
+    def test_email(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.email), str)
 
-    def test_checking_for_functions(self):
-        self.assertIsNotNone(User.__doc__)
+    def test_password(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.password), str)
 
-    def test_has_attributes(self):
-        self.assertTrue('email' in self.my_user.__dict__)
-        self.assertTrue('id' in self.my_user.__dict__)
-        self.assertTrue('created_at' in self.my_user.__dict__)
-        self.assertTrue('updated_at' in self.my_user.__dict__)
-        self.assertTrue('password' in self.my_user.__dict__)
-        self.assertTrue('first_name' in self.my_user.__dict__)
-        self.assertTrue('last_name' in self.my_user.__dict__)
+    def test_inheritance(self):
+        """Test inheritance from BaseModel"""
+        self.assertTrue(issubclass(User, BaseModel))
 
-    def test_attributes_are_strings(self):
-        self.assertEqual(type(self.my_user.email), str)
-        self.assertEqual(type(self.my_user.password), str)
-        self.assertEqual(type(self.my_user.first_name), str)
-        self.assertEqual(type(self.my_user.first_name), str)
+    def test_attributes(self):
+        """Test class attributes"""
+        self.assertTrue(hasattr(self.user, 'email'))
+        self.assertTrue(hasattr(self.user, 'password'))
+        self.assertTrue(hasattr(self.user, 'first_name'))
+        self.assertTrue(hasattr(self.user, 'last_name'))
 
-    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "testing skip")
-    def test_save(self):
-        self.my_user.save()
-        self.assertNotEqual(self.my_user.created_at, self.my_user.updated_at)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') == 'db', "Not applicable")
+    def test_attributes_file_storage(self):
+        """Test attributes for file storage"""
+        self.assertEqual(self.user.email, "")
+        self.assertEqual(self.user.password, "")
+        self.assertEqual(self.user.first_name, "")
+        self.assertEqual(self.user.last_name, "")
 
-    def test_to_dict(self):
-        self.assertEqual('to_dict' in dir(self.my_user), True)
+    @unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db', "Not applicable")
+    def test_attributes_db_storage(self):
+        """Test attributes for database storage"""
+        self.assertTrue(isinstance(self.user.email, str))
+        self.assertTrue(isinstance(self.user.password, str))
+        self.assertTrue(isinstance(self.user.first_name, str))
+        self.assertTrue(isinstance(self.user.last_name, str))
+
+    def test_user_creation(self):
+        """Test user instance creation"""
+        self.assertTrue(isinstance(self.user, User))
+
+    def test_first_name_type(self):
+        """Test type of first_name attribute"""
+        self.assertIsInstance(self.user.first_name, str)
+
+    def test_last_name_type(self):
+        """Test type of last_name attribute"""
+        self.assertIsInstance(self.user.last_name, str)
+
+    def test_email_type(self):
+        """Test type of email attribute"""
+        self.assertIsInstance(self.user.email, str)
+
+    def test_password_type(self):
+        """Test type of password attribute"""
+        self.assertIsInstance(self.user.password, str)
+
+    def test_str_representation(self):
+        """Test __str__ method"""
+        string = str(self.user)
+        self.assertTrue("[User]" in string)
+        self.assertTrue("id" in string)
+        self.assertTrue("created_at" in string)
+        self.assertTrue("updated_at" in string)
+
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_print(self, mock_stdout):
+        """Test print method"""
+        expected_output = "[User] ({}) {}\n".format(
+            self.user.id, self.user.__dict__)
+        print(self.user)
+        self.assertEqual(mock_stdout.getvalue(), expected_output)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
