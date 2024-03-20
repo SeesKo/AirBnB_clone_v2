@@ -4,6 +4,7 @@ import unittest
 import os
 from models.user import User
 from models.base_model import BaseModel
+from tests.test_models.test_base_model import test_basemodel
 
 
 class test_User(test_basemodel):
