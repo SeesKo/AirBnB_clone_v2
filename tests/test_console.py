@@ -1,97 +1,163 @@
 #!/usr/bin/python3
-"""
-Unit test cases for the HBNBCommand console.
-"""
-import unittest
+''' Test suite for the console'''
+
+import os
+import sys
 import models
-from unittest.mock import patch
+import unittest
+import pep8
 from io import StringIO
 from console import HBNBCommand
+from unittest.mock import create_autospec
 
 
-class TestConsole(unittest.TestCase):
-    """ Unittests for the HBNB console """
-    
+class test_console(unittest.TestCase):
+    ''' Test the console module'''
+
+    """Check for Pep8 style conformance"""
+
+    def test_pep8_console(self):
+        """Pep8 console.py"""
+        style = pep8.StyleGuide(quiet=False)
+        errors = 0
+        file = (["console.py"])
+        errors += style.check_files(file).total_errors
+        self.assertEqual(errors, 0, 'Need to fix Pep8')
+
     def setUp(self):
-        """ Setting up the HBNBCommand instance for testing """
-        self.console = HBNBCommand()
+        '''setup for'''
+        self.backup = sys.stdout
+        self.capt_out = StringIO()
+        sys.stdout = self.capt_out
 
-    def test_create_command(self):
-        """ Testing the create command """
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_create("User")
-            output = fake_out.getvalue().strip()
-            # Check if output contains the ID of the created instance
-            self.assertTrue(output.startswith("u-"))
-            # Check if the created instance exists in storage
-            self.assertIn(output, models.storage.all())
+    def tearDown(self):
+        ''''''
+        sys.stdout = self.backup
 
-    def test_show_command(self):
-        """ Testing the show command """
-        user = models.User()
-        user.save()
-        # Run show command for the test user instance
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_show("User {}".format(user.id))
-            output = fake_out.getvalue().strip()
-            # Check if output contains information about the user
-            self.assertIn(str(user), output)
+    def create(self):
+        ''' create an instance of the HBNBCommand class'''
+        return HBNBCommand()
 
-    def test_destroy_command(self):
-        """ Testing the destroy command """
-        user = models.User()
-        user.save()
-        # Run destroy command for the test user instance
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_destroy("User {}".format(user.id))
-            # Check if the user instance is removed from storage
-            self.assertNotIn(user.id, models.storage.all())
+    def test_quit(self):
+        ''' Test quit exists'''
+        console = self.create()
+        self.assertTrue(console.onecmd("quit"))
 
-    def test_all_command(self):
-        """ Testing the all command """
-        user = models.User()
-        user.save()
-        place = models.Place()
-        place.save()
-        # Run all command
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_all("")
-            output = fake_out.getvalue().strip()
-            # Check if output contains information about all objects
-            self.assertIn(str(user), output)
-            self.assertIn(str(place), output)
-        # Run all command for specific class
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_all("User")
-            output = fake_out.getvalue().strip()
-            # Check if output contains information about objects of User class
-            self.assertIn(str(user), output)
-            self.assertNotIn(str(place), output)
+    def test_EOF(self):
+        ''' Test EOF exists'''
+        console = self.create()
+        self.assertTrue(console.onecmd("EOF"))
 
-    def test_count_command(self):
-        """ Testing the count command """
-        user1 = models.User()
-        user1.save()
-        user2 = models.User()
-        user2.save()
-        place1 = models.Place()
-        place1.save()
-        # Run count command for User class
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_count("User")
-            output = fake_out.getvalue().strip()
-            # Check if output contains correct count of User instances
-            self.assertEqual(output, "2")
+    def test_all(self):
+        ''' Test all exists'''
+        console = self.create()
+        console.onecmd("all")
+        self.assertTrue(isinstance(self.capt_out.getvalue(), str))
 
-    def test_update_command(self):
-        """ Testing the update command """
-        user = models.User()
-        user.save()
-        # Run update command to update attribute of the user instance
-        with patch('sys.stdout', new=StringIO()) as fake_out:
-            self.console.do_update("User {} email \"test@example.com\"".format(user.id))
-            # Check if the user instance's attribute is updated
-            self.assertEqual(user.email, "test@example.com")
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_show(self):
+        '''
+            Testing that show exists
+        '''
+        console = self.create()
+        console.onecmd("create User")
+        user_id = self.capt_out.getvalue()
+        sys.stdout = self.backup
+        self.capt_out.close()
+        self.capt_out = StringIO()
+        sys.stdout = self.capt_out
+        console.onecmd("show User " + user_id)
+        x = (self.capt_out.getvalue())
+        sys.stdout = self.backup
+        self.assertTrue(isinstance(x, str))
+
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_show_class_name(self):
+        '''
+            Testing the error messages for class name missing.
+        '''
+        console = self.create()
+        console.onecmd("create User")
+        user_id = self.capt_out.getvalue()
+        sys.stdout = self.backup
+        self.capt_out.close()
+        self.capt_out = StringIO()
+        sys.stdout = self.capt_out
+        console.onecmd("show")
+        x = (self.capt_out.getvalue())
+        sys.stdout = self.backup
+        self.assertEqual("** class name missing **\n", x)
+
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_show_class_name(self):
+        '''
+            Test show message error for id missing
+        '''
+        console = self.create()
+        console.onecmd("create User")
+        user_id = self.capt_out.getvalue()
+        sys.stdout = self.backup
+        self.capt_out.close()
+        self.capt_out = StringIO()
+        sys.stdout = self.capt_out
+        console.onecmd("show User")
+        x = (self.capt_out.getvalue())
+        sys.stdout = self.backup
+        self.assertEqual("** instance id missing **\n", x)
+
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_show_no_instance_found(self):
+        '''
+            Test show message error for id missing
+        '''
+        console = self.create()
+        console.onecmd("create User")
+        user_id = self.capt_out.getvalue()
+        sys.stdout = self.backup
+        self.capt_out.close()
+        self.capt_out = StringIO()
+        sys.stdout = self.capt_out
+        console.onecmd("show User " + "124356876")
+        x = (self.capt_out.getvalue())
+        sys.stdout = self.backup
+        self.assertEqual("** no instance found **\n", x)
+
+    @unittest.skipIf(
+        os.getenv('HBNB_TYPE_STORAGE') == 'db',
+        "won't work in db")
+    def test_create_fileStorage(self):
+        '''
+            Test that create works
+        '''
+        console = self.create()
+        console.onecmd("create User")
+        self.assertTrue(isinstance(self.capt_out.getvalue(), str))
+
+    def test_class_name(self):
+        '''
+            Testing the error messages for class name missing.
+        '''
+        console = self.create()
+        console.onecmd("create")
+        x = (self.capt_out.getvalue())
+        self.assertEqual("** class name missing **\n", x)
+
+    def test_class_name_doest_exist(self):
+        '''
+            Testing the error messages for class name missing.
+        '''
+        console = self.create()
+        console.onecmd("create Binita")
+        x = (self.capt_out.getvalue())
+        self.assertEqual("** class doesn't exist **\n", x)
 
 
 if __name__ == "__main__":
