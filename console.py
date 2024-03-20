@@ -118,11 +118,13 @@ class HBNBCommand(cmd.Cmd):
     def create_dict(self, args):
         """ Create a dictionary from a list of string arguments """
         parsed_dict = {}
+
         for arg_item in args:
             if "=" in arg_item:
                 pair = arg_item.split('=', 1)
                 key = pair[0]
                 value = pair[1]
+
                 if value[0] == value[-1] == '"':
                     value = value.replace('"', '').replace('_', ' ')
                 else:
@@ -134,20 +136,24 @@ class HBNBCommand(cmd.Cmd):
                         except ValueError:
                             continue
                 parsed_dict[key] = value
+
         return parsed_dict
 
     def do_create(self, args):
         """ Create a new instance of a specified class """
         args = args.split()
+
         if len(args) == 0:
             print("** class name missing **")
             return
+
         if args[0] in HBNBCommand.classes:
             parsed_dict = self.create_dict(args[1:])
             new_instance = HBNBCommand.classes[args[0]](**parsed_dict)
         else:
             print("** class doesn't exist **")
             return
+
         print(new_instance.id)
         new_instance.save()
 
