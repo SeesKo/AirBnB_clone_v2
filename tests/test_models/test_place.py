@@ -1,69 +1,70 @@
 #!/usr/bin/python3
-""" """
-from tests.test_models.test_base_model import test_basemodel
+"""Unit tests for Place class"""
+import unittest
+from unittest.mock import patch
+from io import StringIO
 from models.place import Place
+from models.base_model import BaseModel
+from models.review import Review
+from models.amenity import Amenity
+from os import getenv
 
 
-class test_Place(test_basemodel):
-    """ """
+class TestPlace(unittest.TestCase):
+    """Test cases for the Place class"""
 
-    def __init__(self, *args, **kwargs):
-        """ """
-        super().__init__(*args, **kwargs)
-        self.name = "Place"
-        self.value = Place
+    def test_place_inheritance(self):
+        """Test that Place inherits from BaseModel"""
+        new_place = Place()
+        self.assertIsInstance(new_place, BaseModel)
 
-    def test_city_id(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.city_id), str)
+    def test_place_attributes(self):
+        """Test Place attributes"""
+        new_place = Place()
+        self.assertTrue(hasattr(new_place, 'city_id'))
+        self.assertTrue(hasattr(new_place, 'user_id'))
+        self.assertTrue(hasattr(new_place, 'name'))
+        self.assertTrue(hasattr(new_place, 'description'))
+        self.assertTrue(hasattr(new_place, 'number_rooms'))
+        self.assertTrue(hasattr(new_place, 'number_bathrooms'))
+        self.assertTrue(hasattr(new_place, 'max_guest'))
+        self.assertTrue(hasattr(new_place, 'price_by_night'))
+        self.assertTrue(hasattr(new_place, 'latitude'))
+        self.assertTrue(hasattr(new_place, 'longitude'))
+        self.assertTrue(hasattr(new_place, 'amenities'))
+        self.assertTrue(hasattr(new_place, 'reviews'))
 
-    def test_user_id(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.user_id), str)
+    def test_amenities_relationship(self):
+        """Test the amenities relationship"""
+        new_place = Place()
+        self.assertEqual(type(new_place.amenities), list)
 
-    def test_name(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.name), str)
+    def test_reviews_relationship(self):
+        """Test the reviews relationship"""
+        new_place = Place()
+        self.assertEqual(type(new_place.reviews), list)
 
-    def test_description(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.description), str)
+    def test_amenities_type(self):
+        """Test that amenities is a list of Amenity instances"""
+        new_place = Place()
+        self.assertTrue(all(
+            isinstance(amenity, Amenity) for amenity in new_place.amenities))
 
-    def test_number_rooms(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.number_rooms), int)
+    def test_reviews_type(self):
+        """Test that reviews is a list of Review instances"""
+        new_place = Place()
+        self.assertTrue(all(
+            isinstance(review, Review) for review in new_place.reviews))
 
-    def test_number_bathrooms(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.number_bathrooms), int)
+    @patch('sys.stdout', new_callable=StringIO)
+    def test_str(self, mock_stdout):
+        """Test the __str__ method"""
+        new_place = Place()
+        expected_output = "[Place] ({}) {}".format(
+                new_place.id, new_place.__dict__)
+        print(new_place)
+        self.assertEqual(mock_stdout.getvalue().strip(), expected_output)
 
-    def test_max_guest(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.max_guest), int)
 
-    def test_price_by_night(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.price_by_night), int)
-
-    def test_latitude(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.latitude), float)
-
-    def test_longitude(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.latitude), float)
-
-    def test_amenity_ids(self):
-        """ """
-        new = self.value()
-        self.assertEqual(type(new.amenity_ids), list)
+if __name__ == '__main__':
+    unittest.main()
