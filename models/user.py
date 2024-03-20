@@ -22,11 +22,3 @@ class User(BaseModel, Base):
         password = ""
         first_name = ""
         last_name = ""
-
-    # Add a method to return a dictionary representation of the User instance
-    def to_dict(self):
-        """Returns a dictionary containing all keys/values of the object"""
-        user_dict = self.__dict__.copy()
-        # Remove the SQLAlchemy special attributes
-        user_dict.pop('_sa_instance_state', None)
-        return user_dict
