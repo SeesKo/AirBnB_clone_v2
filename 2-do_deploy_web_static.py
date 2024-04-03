@@ -16,28 +16,31 @@ def do_deploy(archive_path):
     """
     Distributes an archive to your web servers and deploys it
     """
-    if not os.path.exists(archive_path):
-        return False
-
-    try:
-        # Upload the archive to the /tmp/ directory of the web server
+    if exists(archive_path):
+        print(archive_path)
         put(archive_path, '/tmp/')
-
-        # Extract archive to folder
-        filename = os.path.basename(archive_path)
-        folder_name = "/data/web_static/releases/{}".format(filename[:-4])
-        run("mkdir -p {}".format(folder_name))
-        run("tar -xzf /tmp/{} -C {}".format(filename, folder_name))
-
-        # Delete the archive from the web server
-        run("rm /tmp/{}".format(filename))
-
-        # Delete the symbolic link /data/web_static/current from the web server
-        run("rm -rf /data/web_static/current")
-
-        # Create a new symbolic link linked to the new version
-        run("ln -s {} /data/web_static/current".format(folder_name))
-
+        file_name = archive_path.split('/')[-1]
+        folder_name = file_name.replace('.tgz', '')
+        print(folder_name)
+        run('mkdir -p /data/web_static/releases/{}/'.format(folder_name))
+        run('tar -xzf /tmp/{} -C /data/web_static/releases/{}'.format(
+            file_name,
+            folder_name
+        ))
+        run('rm /tmp/{}'.format(file_name))
+        run('mv {}/{}/web_static/* /data/web_static/releases/{}'.format(
+            '/data/web_static/releases',
+            folder_name,
+            folder_name
+            ))
+        run('rm -rf /data/web_static/releases/{}/web_static'.format(
+            folder_name
+            ))
+        run('rm -rf /data/web_static/current')
+        run('ln -s {}/{}/ /data/web_static/current'.format(
+            '/data/web_static/releases',
+            folder_name
+            ))
         return True
-    except Exception as e:
+    else:
         return False
