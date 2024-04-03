@@ -1,29 +1,25 @@
 #!/usr/bin/python3
 """
-Fabric script that deletes out-of-date archives.
+Fabric script that deletes out-of-date archives
 """
 from fabric.api import *
 from datetime import datetime
 import os
 
-env.user = 'ubuntu'
 env.hosts = ['100.25.15.192', '3.94.181.137']
+env.user = 'ubuntu'
 
 
 def do_clean(number=0):
     """
-    Deletes out-of-date archives from versions and folders.
-
-    Args:
-        number (int): Number of most recent archives to keep.
+    Deletes out-of-date archives
     """
-    number = int(number)
-    if number < 1:
+    if int(number) < 2:
         number = 1
-    number += 1
-    with lcd('versions'):
-        local("ls -t | tail -n +{} | xargs -I {{}} rm -- {{}}"
-        .format(number))
-    with cd('/data/web_static/releases'):
-        run("ls -t | tail -n +{} | xargs -I {{}} rm -rf -- {{}}"
-        .format(number))
+    else:
+        number = int(number)
+
+    local("cd versions; ls -t | tail -n +{} | xargs rm -f".format(number + 1))
+
+    run("cd /data/web_static/releases; ls -t | tail -n +{} | xargs rm -rf".
+        format(number + 1))
