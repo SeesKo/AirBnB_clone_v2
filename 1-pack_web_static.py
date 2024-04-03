@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """
 Fabric script that generates a .tgz archive
 """
@@ -26,7 +26,3 @@ def do_pack():
         return file_name
     except Exception:
         return None
-
-
-if __name__ == "__main__":
-    do_pack()
