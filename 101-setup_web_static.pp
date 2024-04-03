@@ -1,44 +1,18 @@
 # Puppet manifest to configure Nginx to serve static files
 
-# Install Nginx package
+# Ensure Nginx is installed
 package { 'nginx':
   ensure => installed,
 }
 
-# Define directories
-file { '/data':
+# Create necessary directories
+file { ['/data/web_static', '/data/web_static/releases', '/data/web_static/shared', '/data/web_static/releases/test']:
   ensure => directory,
-  owner  => 'ubuntu',
-  group  => 'ubuntu',
 }
 
-file { '/data/web_static':
-  ensure => directory,
-  owner  => 'ubuntu',
-  group  => 'ubuntu',
-}
-
-file { '/data/web_static/releases':
-  ensure => directory,
-  owner  => 'ubuntu',
-  group  => 'ubuntu',
-}
-
-file { '/data/web_static/shared':
-  ensure => directory,
-  owner  => 'ubuntu',
-  group  => 'ubuntu',
-}
-
-file { '/data/web_static/releases/test':
-  ensure => directory,
-  owner  => 'ubuntu',
-  group  => 'ubuntu',
-}
-
-# Create index.html file
+# Create fake HTML file
 file { '/data/web_static/releases/test/index.html':
-  ensure  => file,
+  ensure  => present,
   content => '<html>
   <head>
   </head>
@@ -46,28 +20,33 @@ file { '/data/web_static/releases/test/index.html':
     Holberton School
   </body>
 </html>',
-  owner   => 'ubuntu',
-  group   => 'ubuntu',
 }
 
 # Create symbolic link
 file { '/data/web_static/current':
-  ensure  => link,
-  target  => '/data/web_static/releases/test',
-  owner   => 'root',
-  group   => 'root',
+  ensure => link,
+  target => '/data/web_static/releases/test',
+  force  => true,
 }
 
-# Configure Nginx to serve static files
-file { '/etc/nginx/sites-available/default':
-  ensure  => present,
-  content => template('path/to/nginx_config_template.erb'),
-  require => Package['nginx'],
-  notify  => Service['nginx'],
+# Set ownership to ubuntu user and group recursively
+file { '/data/web_static':
+  ensure  => directory,
+  owner   => 'ubuntu',
+  group   => 'ubuntu',
+  recurse => true,
 }
 
+# Update Nginx configuration
+file_line { 'hbnb_static_config':
+  ensure => present,
+  path   => '/etc/nginx/sites-available/default',
+  line   => "        location /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n",
+}
+
+# Restart Nginx service
 service { 'nginx':
-  ensure  => running,
-  enable  => true,
-  require => File['/etc/nginx/sites-available/default'],
+  ensure     => running,
+  enable     => true,
+  subscribe  => File['/etc/nginx/sites-available/default'],
 }
