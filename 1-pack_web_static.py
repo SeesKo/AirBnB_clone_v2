@@ -24,5 +24,5 @@ def do_pack():
 
         # Return the archive path if the archive has been correctly generated
         return file_name
-    except Exception as e:
+    except Exception:
         return None
