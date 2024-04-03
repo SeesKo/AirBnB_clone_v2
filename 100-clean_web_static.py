@@ -2,8 +2,7 @@
 """
 Fabric script that deletes out-of-date archives
 """
-
-from fabric.api import env, run, local
+from fabric.api import *
 from datetime import datetime
 import os
 
@@ -15,12 +14,12 @@ def do_clean(number=0):
     """
     Deletes out-of-date archives
     """
-    if int(number) < 2:
-        number = 1
+
+    if number == 0:
+        number = 2
     else:
-        number = int(number)
+        number += 1
 
-    local("cd versions; ls -t | tail -n +{} | xargs rm -f".format(number + 1))
-
-    run("cd /data/web_static/releases; ls -t | tail -n +{} | xargs rm -rf".
-        format(number + 1))
+    local('cd versions ; ls -t | tail -n +{} | xargs rm -rf'.format(number))
+    path = '/data/web_static/releases'
+    run('cd {} ; ls -t | tail -n +{} | xargs rm -rf'.format(path, number))
