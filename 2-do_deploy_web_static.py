@@ -1,58 +1,40 @@
 #!/usr/bin/python3
-""" Write a Fabric script (based on the file
-1-pack_web_static.py) that distributes an archive
-to your web servers, using the function do_deploy
-"""
-from fabric.api import local, env, run, put
+""" Function that compress a folder """
 from datetime import datetime
-from os.path import exists
+from fabric.api import *
+import shlex
+import os
 
-env.hosts = ['34.73.169.245', '35.231.18.60']
 
-
-def do_pack():
-    """[summary]"""
-    local('mkdir -p versions')
-    tar_dir = local("tar -czvf versions/web_static_{}.tgz web_static/".format((
-        datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))), capture=True)
-
-    if tar_dir.succeeded:
-        return tar_dir
-    return None
+env.hosts = ['100.25.15.192', '3.94.181.137']
+env.user = "ubuntu"
 
 
 def do_deploy(archive_path):
-    """[summary]"""
-    # Returns False if the file at the path archive_path doesn’t exist
-    if exists(archive_path):
-        # archive_path = versions/web_static_#####.tgz
-        # file_path = web_static_#####.tgz
-        file_path = archive_path.split("/")[1]
-        # serv_path = /data/web_static/releases/web_static_#####
-        serv_path = "/data/web_static/releases/{}".format(
-            file_path.replace(".tgz", ""))
-        # Upload the archive to the /tmp/ directory of the web server
-        put('{}'.format(archive_path), '/tmp/')
-        # ???
-        run('mkdir -p {}'.format(serv_path))
-        # Uncompress the archive to the folde <..> on the web server
-        run('tar -xzf /tmp/{} -C {}/'.format(
-            file_path,
-            serv_path))
-        # Delete the archive from the web server
-        run('rm /tmp/{}'.format(file_path))
-        # ???
-        run('mv -f {}/web_static/* {}/'.format(serv_path, serv_path))
-        # Delete the symbolic link <..> from the web server
-        run('rm -rf {}/web_static'.format(
-            serv_path))
-        # ??
-        run('rm -rf /data/web_static/current')
-        # run('unlink /data/web_static/current')
-        # Create a new Symbolic link, linked to the new version of your code
-        run('ln -s {} /data/web_static/current'.format(
-            serv_path))
-        # Retur  True if all operations have been done correctly
+    """ Deploys """
+    if not os.path.exists(archive_path):
+        return False
+    try:
+        name = archive_path.replace('/', ' ')
+        name = shlex.split(name)
+        name = name[-1]
+
+        wname = name.replace('.', ' ')
+        wname = shlex.split(wname)
+        wname = wname[0]
+
+        releases_path = "/data/web_static/releases/{}/".format(wname)
+        tmp_path = "/tmp/{}".format(name)
+
+        put(archive_path, "/tmp/")
+        run("mkdir -p {}".format(releases_path))
+        run("tar -xzf {} -C {}".format(tmp_path, releases_path))
+        run("rm {}".format(tmp_path))
+        run("mv {}web_static/* {}".format(releases_path, releases_path))
+        run("rm -rf {}web_static".format(releases_path))
+        run("rm -rf /data/web_static/current")
+        run("ln -s {} /data/web_static/current".format(releases_path))
+        print("New version deployed!")
         return True
-    else:
+    except:
         return False
