@@ -1,7 +1,7 @@
 # Puppet manifest to configure Nginx to serve static files
 
 # Nginx configuration
-$nginx_conf = "server {
+$nginx_configuration = "server {
     listen 80 default_server;
     listen [::]:80 default_server;
     add_header X-Served-By ${hostname};
@@ -80,7 +80,7 @@ file { '/var/www/html/404.html':
 
 file { '/etc/nginx/sites-available/default':
   ensure  => 'present',
-  content => $nginx_conf
+  content => $nginx_configuration
 } ->
 
 exec { 'nginx restart':
