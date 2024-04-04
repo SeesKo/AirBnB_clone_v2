@@ -17,7 +17,7 @@ file { '/var/www':
 }
 
 # Nginx configuration
-$nginx_conf = "server {
+$nginx_server_config = "server {
     listen 80 default_server;
     listen [::]:80 default_server;
     add_header X-Served-By ${hostname};
@@ -38,7 +38,7 @@ $nginx_conf = "server {
 }"
 file { '/etc/nginx/sites-available/default':
   ensure  => 'present',
-  content => $nginx_conf,
+  content => $nginx_server_config,
 }
 
 # File content setup
