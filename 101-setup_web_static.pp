@@ -1,52 +1,88 @@
-# Puppet manifest to configure Nginx to serve static files
+# Configures a web server for deployment of web_static.
 
-# Ensure Nginx is installed
+# Nginx configuration file
+$nginx_conf = "server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    add_header X-Served-By ${hostname};
+    root   /var/www/html;
+    index  index.html index.htm;
+    location /hbnb_static {
+        alias /data/web_static/current;
+        index index.html index.htm;
+    }
+    location /redirect_me {
+        return 301 https://th3-gr00t.tk;
+    }
+    error_page 404 /404.html;
+    location /404 {
+      root /var/www/html;
+      internal;
+    }
+}"
+
 package { 'nginx':
-  ensure => installed,
-}
+  ensure   => 'present',
+  provider => 'apt'
+} ->
 
-# Create necessary directories
-file { ['/data/web_static', '/data/web_static/releases', '/data/web_static/shared', '/data/web_static/releases/test']:
-  ensure => directory,
-}
+file { '/data':
+  ensure  => 'directory'
+} ->
 
-# Create fake HTML file
-file { '/data/web_static/releases/test/index.html':
-  ensure  => present,
-  content => '<html>
-  <head>
-  </head>
-  <body>
-    Holberton School
-  </body>
-</html>',
-}
-
-# Create symbolic link
-file { '/data/web_static/current':
-  ensure => link,
-  target => '/data/web_static/releases/test',
-  force  => true,
-}
-
-# Set ownership to ubuntu user and group recursively
 file { '/data/web_static':
-  ensure  => directory,
-  owner   => 'ubuntu',
-  group   => 'ubuntu',
-  recurse => true,
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/releases':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/releases/test':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/shared':
+  ensure => 'directory'
+} ->
+
+file { '/data/web_static/releases/test/index.html':
+  ensure  => 'present',
+  content => "Holberton School\n"
+} ->
+
+file { '/data/web_static/current':
+  ensure => 'link',
+  target => '/data/web_static/releases/test'
+} ->
+
+exec { 'chown -R ubuntu:ubuntu /data/':
+  path => '/usr/bin/:/usr/local/bin/:/bin/'
 }
 
-# Update Nginx configuration
-file_line { 'hbnb_static_config':
-  ensure => present,
-  path   => '/etc/nginx/sites-available/default',
-  line   => "        location /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n",
-}
+file { '/var/www':
+  ensure => 'directory'
+} ->
 
-# Restart Nginx service
-service { 'nginx':
-  ensure     => running,
-  enable     => true,
-  subscribe  => File['/etc/nginx/sites-available/default'],
+file { '/var/www/html':
+  ensure => 'directory'
+} ->
+
+file { '/var/www/html/index.html':
+  ensure  => 'present',
+  content => "Holberton School\n"
+} ->
+
+file { '/var/www/html/404.html':
+  ensure  => 'present',
+  content => "404 - Page Not Found\n"
+} ->
+
+file { '/etc/nginx/sites-available/default':
+  ensure  => 'present',
+  content => $nginx_conf
+} ->
+
+exec { 'nginx restart':
+  path => '/etc/init.d/'
 }
