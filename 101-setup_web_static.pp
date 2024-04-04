@@ -1,7 +1,23 @@
 # Puppet manifest to configure Nginx to serve static files
 
+# Package installation
+package { 'nginx':
+  ensure   => 'present',
+  provider => 'apt',
+}
+
+# Directory structure setup
+file { ['/data', '/data/web_static', '/data/web_static/releases', '/data/web_static/releases/test', '/data/web_static/shared']:
+  ensure => 'directory',
+}
+
+# Web server directory setup
+file { '/var/www':
+  ensure => 'directory',
+}
+
 # Nginx configuration
-$nginx_configuration = "server {
+$nginx_conf = "server {
     listen 80 default_server;
     listen [::]:80 default_server;
     add_header X-Served-By ${hostname};
@@ -20,69 +36,37 @@ $nginx_configuration = "server {
       internal;
     }
 }"
-
-package { 'nginx':
-  ensure   => 'present',
-  provider => 'apt'
-} ->
-
-file { '/data':
-  ensure  => 'directory'
-} ->
-
-file { '/data/web_static':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases/test':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/shared':
-  ensure => 'directory'
-} ->
-
-file { '/data/web_static/releases/test/index.html':
-  ensure  => 'present',
-  content => "Holberton School\n"
-} ->
-
-file { '/data/web_static/current':
-  ensure => 'link',
-  target => '/data/web_static/releases/test'
-} ->
-
-exec { 'chown -R ubuntu:ubuntu /data/':
-  path => '/usr/bin/:/usr/local/bin/:/bin/'
-}
-
-file { '/var/www':
-  ensure => 'directory'
-} ->
-
-file { '/var/www/html':
-  ensure => 'directory'
-} ->
-
-file { '/var/www/html/index.html':
-  ensure  => 'present',
-  content => "Holberton School\n"
-} ->
-
-file { '/var/www/html/404.html':
-  ensure  => 'present',
-  content => "404 - Page Not Found\n"
-} ->
-
 file { '/etc/nginx/sites-available/default':
   ensure  => 'present',
-  content => $nginx_configuration
-} ->
+  content => $nginx_conf,
+}
 
+# File content setup
+file { '/data/web_static/releases/test/index.html':
+  ensure  => 'present',
+  content => "Holberton School\n",
+}
+
+# Web server file content setup
+file { ['/var/www/html/index.html', '/var/www/html/404.html']:
+  ensure  => 'present',
+  content => "Holberton School\n",
+}
+
+# Symbolic link creation
+file { '/data/web_static/current':
+  ensure => 'link',
+  target => '/data/web_static/releases/test',
+}
+
+# File ownership adjustment
+exec { 'chown -R ubuntu:ubuntu /data/':
+  path => '/usr/bin/:/usr/local/bin/:/bin/',
+}
+
+# Nginx restart
 exec { 'nginx restart':
-  path => '/etc/init.d/'
+  path => '/etc/init.d/',
+  refreshonly => true,
+  subscribe => File['/etc/nginx/sites-available/default'],
 }
