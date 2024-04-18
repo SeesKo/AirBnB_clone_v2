@@ -5,7 +5,10 @@ class FileStorage or DBStorage
 """
 from os import getenv
 
-if getenv('HBNB_TYPE_STORAGE') == 'db':
+
+storage_t = getenv('HBNB_TYPE_STORAGE')
+
+if storage_t == 'db':
     from models.engine.db_storage import DBStorage
     storage = DBStorage()
 else:
