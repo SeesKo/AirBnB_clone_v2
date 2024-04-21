@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Defines the FileStorage class."""
+""" FileStorage Module """
 import json
 from models.base_model import BaseModel
 from models.amenity import Amenity
@@ -11,51 +11,55 @@ from models.user import User
 
 
 class FileStorage:
-    """Represent an abstracted storage engine"""
-
+    """
+    Serializes instances to a JSON file and deserializes
+    JSON file to instances
+    """
     __file_path = "file.json"
     __objects = {}
 
     def all(self, cls=None):
-        """Return a dictionary of instantiated objects in __objects"""
+        """ Returns a dictionary of all objects """
         if cls is not None:
             if type(cls) == str:
                 cls = eval(cls)
-            cls_dict = {}
+            class_dict = {}
             for k, v in self.__objects.items():
                 if type(v) == cls:
-                    cls_dict[k] = v
-            return cls_dict
+                    class_dict[k] = v
+
+            return class_dict
+
         return self.__objects
 
     def new(self, obj):
-        """Set in __objects obj with key <obj_class_name>.id."""
+        """ Sets in __objects the obj with key <obj class name>.id """
         self.__objects["{}.{}".format(type(obj).__name__, obj.id)] = obj
 
     def save(self):
-        """Serialize __objects to the JSON file __file_path."""
-        odict = {o: self.__objects[o].to_dict() for o in self.__objects.keys()}
+        """ Serializes __objects to the JSON file """
+        object_data = {obj_key: self.__objects[obj_key].to_dict() for obj_key in self.__objects.keys()}
         with open(self.__file_path, "w", encoding="utf-8") as f:
-            json.dump(odict, f)
+            json.dump(object_data, f)
 
     def reload(self):
-        """Deserialize the JSON file __file_path to __objects, if it exists."""
+        """Deserializes the JSON file to __objects"""
         try:
             with open(self.__file_path, "r", encoding="utf-8") as f:
-                for o in json.load(f).values():
-                    name = o["__class__"]
-                    del o["__class__"]
-                    self.new(eval(name)(**o))
+                for obj_data in json.load(f).values():
+                    class_name = obj_data["__class__"]
+                    del obj_data["__class__"]
+                    self.new(eval(class_name)(**obj_data))
         except FileNotFoundError:
             pass
 
     def delete(self, obj=None):
-        """Delete a given object from __objects, if it exists."""
+        """ Deletes obj from __objects if it's inside """
         try:
             del self.__objects["{}.{}".format(type(obj).__name__, obj.id)]
         except (AttributeError, KeyError):
             pass
 
     def close(self):
-        """Call the reload method."""
+        """ Calls reload() method to deserialize JSON file to objects """
         self.reload()
